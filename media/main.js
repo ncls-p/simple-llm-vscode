@@ -233,9 +233,6 @@
   }
 
   function renderMarkdown(content) {
-    if (content.startsWith("```")) {
-      content = "\n" + content;
-    }
     return marked(content, {
       breaks: true,
       gfm: true,
@@ -288,7 +285,7 @@
       "markdown-body"
     );
     messageElement.innerHTML = renderMarkdown(
-      `**${message.sender}:** ${message.content}`
+      `**${message.sender}:**\n ${message.content}`
     );
     addDeleteButton(messageElement);
     elements.chatContainer.appendChild(messageElement);
@@ -362,14 +359,14 @@
     if (!lastMessage || !lastMessage.classList.contains("llm-message")) {
       lastMessage = document.createElement("div");
       lastMessage.classList.add("message", "llm-message", "markdown-body");
-      lastMessage.innerHTML = renderMarkdown("**LLM:** ");
+      lastMessage.innerHTML = renderMarkdown("**LLM:**\n");
       addDeleteButton(lastMessage);
       elements.chatContainer.appendChild(lastMessage);
     }
     const existingContent = lastMessage.getAttribute("data-content") || "";
     const newContent = existingContent + message.content;
     lastMessage.setAttribute("data-content", newContent);
-    lastMessage.innerHTML = renderMarkdown("**LLM:** " + newContent);
+    lastMessage.innerHTML = renderMarkdown("**LLM:**\n" + newContent);
     addDeleteButton(lastMessage);
     scrollToBottom();
 
