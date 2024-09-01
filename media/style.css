@@ -135,21 +135,26 @@ body {
 
 #controls {
     display: flex;
-    justify-content: flex-start;
+    flex-wrap: wrap;
+    justify-content: space-between;
     align-items: center;
     margin-bottom: 10px;
-    flex-wrap: wrap;
+    gap: 10px;
 }
 
 #llm-select, #conversation-select {
-    flex-grow: 1;
-    margin-right: 10px;
+    flex: 1 1 200px;
     background-color: var(--vscode-dropdown-background);
     color: var(--vscode-dropdown-foreground);
     border: 1px solid var(--vscode-dropdown-border);
     border-radius: 3px;
     padding: 5px;
-    margin-bottom: 5px;
+}
+
+.button-group {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 5px;
 }
 
 button {
@@ -159,18 +164,13 @@ button {
     padding: 4px 8px;
     border-radius: 3px;
     cursor: pointer;
-    margin-right: 5px;
-    margin-bottom: 5px;
     font-size: 0.9em;
-}
-
-#controls button {
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-#controls button .icon {
+button .icon {
     width: 16px;
     height: 16px;
 }
@@ -181,8 +181,8 @@ button {
         align-items: stretch;
     }
 
-    #controls button {
-        margin-top: 5px;
+    .button-group {
+        justify-content: space-between;
     }
 }
 
