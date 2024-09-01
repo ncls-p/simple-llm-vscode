@@ -55,21 +55,21 @@
   let isResizing = false;
   let lastY;
 
-  chatContainer.addEventListener("mousedown", (e) => {
+  chatContainer.addEventListener('mousedown', (e) => {
     if (e.offsetY > chatContainer.clientHeight - 10) {
       isResizing = true;
       lastY = e.clientY;
     }
   });
 
-  document.addEventListener("mousemove", (e) => {
+  document.addEventListener('mousemove', (e) => {
     if (!isResizing) return;
     const delta = e.clientY - lastY;
     chatContainer.style.height = `${chatContainer.clientHeight + delta}px`;
     lastY = e.clientY;
   });
 
-  document.addEventListener("mouseup", () => {
+  document.addEventListener('mouseup', () => {
     isResizing = false;
   });
 
@@ -121,8 +121,7 @@
     const fixButton = document.createElement("button");
     fixButton.textContent = "Fix using simple-llm-vscode";
     fixButton.onclick = () => {
-      const errorMessage =
-        document.querySelector(".error-message")?.textContent || "";
+      const errorMessage = document.querySelector(".error-message")?.textContent || "";
       vscode.postMessage({
         type: "fixUsingSimpleLLM",
         errorMessage,
