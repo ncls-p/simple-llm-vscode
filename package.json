@@ -38,6 +38,10 @@
       {
         "command": "llmChatbox.openSettings",
         "title": "Open LLM Chatbox Settings"
+      },
+      {
+        "command": "llmChatbox.fixUsingSimpleLLM",
+        "title": "Fix using simple-llm-vscode"
       }
     ],
     "keybindings": [
