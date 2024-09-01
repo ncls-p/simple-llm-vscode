@@ -139,6 +139,21 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
       return;
     }
 
+    let conversation;
+    if (conversationId) {
+      conversation = this._getConversations().find((c: any) => c.id === conversationId);
+    }
+    if (!conversation) {
+      conversation = {
+        id: Date.now().toString(),
+        messages: [],
+        model: modelName,
+      };
+    }
+
+    const newMessage = { role: "user", content: message };
+    conversation.messages.push(newMessage);
+
     try {
       const response = await axios.post(
         model.apiUrl,
@@ -146,10 +161,10 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
           model: model.modelName,
           messages: [
             { role: "system", content: model.systemPrompt },
-            {
-              role: "user",
-              content: `Context:\n${context}\n\nQuestion: ${message}`,
-            },
+            ...conversation.messages.map((msg: any) => ({
+              role: msg.role,
+              content: msg.role === "user" ? `Context:\n${context}\n\nQuestion: ${msg.content}` : msg.content,
+            })),
           ],
           temperature: model.temperature,
           stream: true,
@@ -162,22 +177,6 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
           responseType: "stream",
         }
       );
-
-      const newMessage = { role: "user", content: message };
-      let conversation;
-      if (conversationId) {
-        conversation = this._getConversations().find((c: any) => c.id === conversationId);
-        if (conversation) {
-          conversation.messages.push(newMessage);
-        }
-      }
-      if (!conversation) {
-        conversation = {
-          id: Date.now().toString(),
-          messages: [newMessage],
-          model: modelName,
-        };
-      }
 
       if (this._view) {
         this._view.webview.postMessage({
