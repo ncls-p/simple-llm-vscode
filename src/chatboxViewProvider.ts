@@ -75,6 +75,18 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
     }
   }
 
+  public sendMessageToLLM(message: string, context: string) {
+    if (this._view) {
+      this._view.webview.postMessage({
+        type: "sendMessage",
+        message,
+        context,
+        model: this._getSettings().models[0].name,
+        conversationId: null
+      });
+    }
+  }
+
   private async _handleMessage(message: any) {
     switch (message.type) {
       case "sendMessage":
