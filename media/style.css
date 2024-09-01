@@ -16,7 +16,8 @@ body {
     padding: 10px;
     margin-bottom: 10px;
     resize: vertical;
-    min-height: 200px;
+    min-height: 100px;
+    max-height: 50vh;
 }
 
 #input-container {
@@ -37,7 +38,7 @@ body {
 }
 
 #context-preview {
-    max-height: 100px;
+    max-height: 150px;
     overflow-y: auto;
     background-color: var(--vscode-editor-background);
     border: 1px solid var(--vscode-panel-border);
@@ -46,6 +47,27 @@ body {
     margin-bottom: 10px;
     white-space: pre-wrap;
     font-family: monospace;
+}
+
+.code-block {
+    margin-bottom: 5px;
+    padding: 5px;
+    background-color: var(--vscode-editor-inactiveSelectionBackground);
+    border-radius: 3px;
+}
+
+#context-preview button {
+    margin-top: 5px;
+    background-color: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    border: none;
+    padding: 2px 5px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+#context-preview button:hover {
+    background-color: var(--vscode-button-hoverBackground);
 }
 
 #controls {

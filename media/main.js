@@ -8,7 +8,7 @@
   const autoScrollButton = document.getElementById("auto-scroll");
   const settingsButton = document.getElementById("settings-button");
 
-  let context = "";
+  let selectedCode = [];
   let autoScroll = true;
 
   // Initialize LLM select
@@ -38,13 +38,35 @@
       vscode.postMessage({
         type: "sendMessage",
         message,
-        context,
+        context: selectedCode.map(c => c.code).join('\n\n'),
         model: llmSelect.value,
       });
       messageInput.value = "";
-      contextPreview.textContent = "";
-      context = "";
+      updateContextPreview();
     }
+  }
+
+  function updateContextPreview() {
+    contextPreview.innerHTML = '';
+    selectedCode.forEach(codeBlock => {
+      const codeElement = document.createElement('div');
+      codeElement.classList.add('code-block');
+      codeElement.textContent = codeBlock.code;
+      
+      const removeButton = document.createElement('button');
+      removeButton.textContent = 'Remove';
+      removeButton.onclick = () => removeCodeBlock(codeBlock.id);
+      
+      const wrapper = document.createElement('div');
+      wrapper.appendChild(codeElement);
+      wrapper.appendChild(removeButton);
+      contextPreview.appendChild(wrapper);
+    });
+  }
+
+  function removeCodeBlock(id) {
+    selectedCode = selectedCode.filter(c => c.id !== id);
+    updateContextPreview();
   }
 
   function scrollToBottom() {
@@ -67,8 +89,8 @@
         scrollToBottom();
         break;
       case "addSelectedCode":
-        context = message.code;
-        contextPreview.textContent = context;
+        selectedCode.push({ id: message.id, code: message.code });
+        updateContextPreview();
         break;
       case "updateLLMs":
         llmSelect.innerHTML = "";
