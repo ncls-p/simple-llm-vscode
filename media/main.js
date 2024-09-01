@@ -142,9 +142,10 @@
 
         const fileInfoElement = document.createElement("div");
         fileInfoElement.classList.add("file-info");
-        const startLine = codeBlock.startLine !== undefined ? codeBlock.startLine : 1;
-        const endLine = codeBlock.endLine !== undefined ? codeBlock.endLine : 'end';
-        fileInfoElement.textContent = `${codeBlock.fileName} (Lines ${startLine}-${endLine})`;
+        const startLine = codeBlock.startLine || 1;
+        const endLine = codeBlock.endLine || 'end';
+        const lineInfo = startLine === endLine ? `Line ${startLine}` : `Lines ${startLine}-${endLine}`;
+        fileInfoElement.textContent = `${codeBlock.fileName} (${lineInfo})`;
         wrapper.appendChild(fileInfoElement);
 
         const removeButton = document.createElement("button");
