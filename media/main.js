@@ -81,6 +81,9 @@
       });
       messageInput.value = "";
       updateContextPreview();
+      
+      // Show loading spinner
+      document.getElementById('input-wrapper').classList.add('loading');
     }
   }
 
@@ -222,6 +225,11 @@
         lastMessage.innerHTML = renderMarkdown("**LLM:** " + newContent);
         addDeleteButton(lastMessage);
         scrollToBottom();
+        
+        // If the message is complete (ends with a newline), hide the loading spinner
+        if (message.content.endsWith('\n')) {
+          document.getElementById('input-wrapper').classList.remove('loading');
+        }
         break;
     }
   });
