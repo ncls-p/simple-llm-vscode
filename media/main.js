@@ -9,6 +9,7 @@
   const deleteConversationButton = document.getElementById("delete-conversation");
   const autoScrollButton = document.getElementById("auto-scroll");
   const settingsButton = document.getElementById("settings-button");
+  const newChatButton = document.getElementById("new-chat-button");
 
   let selectedCode = [];
   let autoScroll = true;
@@ -35,12 +36,17 @@
 
   autoScrollButton.addEventListener("click", () => {
     autoScroll = !autoScroll;
-    autoScrollButton.textContent = `Auto-scroll: ${autoScroll ? "On" : "Off"}`;
     autoScrollButton.classList.toggle("active", autoScroll);
   });
 
   settingsButton.addEventListener("click", () => {
     vscode.postMessage({ type: "openSettings" });
+  });
+
+  newChatButton.addEventListener("click", () => {
+    currentConversationId = null;
+    chatContainer.innerHTML = "";
+    conversationSelect.value = "new";
   });
 
   conversationSelect.addEventListener("change", () => {
@@ -102,7 +108,8 @@
       wrapper.appendChild(codeElement);
       
       const removeButton = document.createElement('button');
-      removeButton.textContent = 'Remove';
+      removeButton.innerHTML = '<i class="icon-trash"></i>';
+      removeButton.title = 'Remove';
       removeButton.onclick = () => removeCodeBlock(codeBlock.id);
       
       wrapper.appendChild(removeButton);
@@ -132,6 +139,18 @@
     });
   }
 
+  function addDeleteButton(messageElement) {
+    const deleteButton = document.createElement('button');
+    deleteButton.classList.add('delete-message');
+    deleteButton.innerHTML = '&times;';
+    deleteButton.title = 'Delete message';
+    deleteButton.onclick = () => {
+      messageElement.remove();
+      // You may want to add logic here to update the conversation in the backend
+    };
+    messageElement.appendChild(deleteButton);
+  }
+
   window.addEventListener("message", (event) => {
     const message = event.data;
     switch (message.type) {
@@ -143,6 +162,7 @@
           "markdown-body"
         );
         messageElement.innerHTML = renderMarkdown(`**${message.sender}:** ${message.content}`);
+        addDeleteButton(messageElement);
         chatContainer.appendChild(messageElement);
         scrollToBottom();
         break;
@@ -182,6 +202,7 @@
             "markdown-body"
           );
           messageElement.innerHTML = renderMarkdown(`**${msg.role === "user" ? "User" : "LLM"}:** ${msg.content}`);
+          addDeleteButton(messageElement);
           chatContainer.appendChild(messageElement);
         });
         scrollToBottom();
@@ -192,12 +213,14 @@
           lastMessage = document.createElement("div");
           lastMessage.classList.add("message", "llm-message", "markdown-body");
           lastMessage.innerHTML = renderMarkdown("**LLM:** ");
+          addDeleteButton(lastMessage);
           chatContainer.appendChild(lastMessage);
         }
         const existingContent = lastMessage.getAttribute("data-content") || "";
         const newContent = existingContent + message.content;
         lastMessage.setAttribute("data-content", newContent);
         lastMessage.innerHTML = renderMarkdown("**LLM:** " + newContent);
+        addDeleteButton(lastMessage);
         scrollToBottom();
         break;
     }

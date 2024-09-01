@@ -267,13 +267,16 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
             <select id="conversation-select">
               <option value="new">New Conversation</option>
             </select>
-            <button id="delete-conversation">Delete Conversation</button>
-            <button id="auto-scroll">Scroll: On</button>
-            <button id="settings-button">Settings</button>
+            <button id="new-chat-button" title="New Chat"><i class="icon-plus"></i></button>
+            <button id="delete-conversation" title="Delete Conversation"><i class="icon-trash"></i></button>
+            <button id="auto-scroll" title="Auto-scroll"><i class="icon-scroll"></i></button>
+            <button id="settings-button" title="Settings"><i class="icon-settings"></i></button>
           </div>
-          <textarea id="message-input" placeholder="Type your message..."></textarea>
           <div id="context-preview"></div>
-          <button id="send-button">Send</button>
+          <div id="input-wrapper">
+            <textarea id="message-input" placeholder="Type your message..."></textarea>
+            <button id="send-button" title="Send"><i class="icon-send"></i></button>
+          </div>
         </div>
         <script src="${scriptUri}"></script>
       </body>
