@@ -51,6 +51,28 @@
     conversationSelect.value = "new";
   });
 
+  // Add resize event listener for chat container
+  let isResizing = false;
+  let lastY;
+
+  chatContainer.addEventListener('mousedown', (e) => {
+    if (e.offsetY > chatContainer.clientHeight - 10) {
+      isResizing = true;
+      lastY = e.clientY;
+    }
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isResizing) return;
+    const delta = e.clientY - lastY;
+    chatContainer.style.height = `${chatContainer.clientHeight + delta}px`;
+    lastY = e.clientY;
+  });
+
+  document.addEventListener('mouseup', () => {
+    isResizing = false;
+  });
+
   conversationSelect.addEventListener("change", () => {
     const selectedConversationId = conversationSelect.value;
     if (selectedConversationId === "new") {

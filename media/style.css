@@ -21,6 +21,12 @@ body {
     min-height: 100px;
     max-height: calc(100vh - 200px);
     height: calc(100vh - 200px);
+    cursor: ns-resize;
+}
+
+#chat-container::-webkit-resizer {
+    background-color: var(--vscode-button-background);
+    border-radius: 0 0 5px 0;
 }
 
 #input-container {
