@@ -280,7 +280,7 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
       </html>
     `;
   }
-}
+
   private _sendConversationsToWebview() {
     const conversations = this._getConversations();
     if (this._view) {
@@ -330,3 +330,4 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
       });
     }
   }
+}
