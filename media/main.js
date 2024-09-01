@@ -96,6 +96,17 @@
     }
   }
 
+  function renderMarkdown(content) {
+    return marked(content, {
+      breaks: true,
+      gfm: true,
+      highlight: function (code, lang) {
+        const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+        return hljs.highlight(code, { language }).value;
+      }
+    });
+  }
+
   window.addEventListener("message", (event) => {
     const message = event.data;
     switch (message.type) {
@@ -106,7 +117,7 @@
           message.sender.toLowerCase() + "-message",
           "markdown-body"
         );
-        messageElement.innerHTML = marked(`${message.sender}: ${message.content}`);
+        messageElement.innerHTML = renderMarkdown(`**${message.sender}:** ${message.content}`);
         chatContainer.appendChild(messageElement);
         scrollToBottom();
         break;
@@ -132,10 +143,11 @@
         if (!lastMessage || !lastMessage.classList.contains("llm-message")) {
           lastMessage = document.createElement("div");
           lastMessage.classList.add("message", "llm-message", "markdown-body");
-          lastMessage.innerHTML = marked("LLM: ");
+          lastMessage.innerHTML = renderMarkdown("**LLM:** ");
           chatContainer.appendChild(lastMessage);
         }
-        lastMessage.innerHTML = marked(lastMessage.textContent + message.content);
+        const newContent = lastMessage.textContent.replace("LLM:", "").trim() + message.content;
+        lastMessage.innerHTML = renderMarkdown("**LLM:** " + newContent);
         scrollToBottom();
         break;
     }
