@@ -57,9 +57,9 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
     webviewView.webview.onDidReceiveMessage(this._handleMessage, this);
   }
 
-  public addSelectedCode(code: string) {
+  public addSelectedCode(code: string, fileName: string) {
     if (this._view) {
-      this._view.webview.postMessage({ type: "addSelectedCode", code, id: Date.now() });
+      this._view.webview.postMessage({ type: "addSelectedCode", code, fileName, id: Date.now() });
     }
   }
 
@@ -209,6 +209,9 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link href="${styleUri}" rel="stylesheet">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/2.0.3/marked.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/highlight.min.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/styles/vs2015.min.css">
         <title>LLM Chatbox</title>
       </head>
       <body>

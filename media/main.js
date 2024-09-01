@@ -11,6 +11,13 @@
   let selectedCode = [];
   let autoScroll = true;
 
+  // Configure marked for syntax highlighting
+  marked.setOptions({
+    highlight: function (code, lang) {
+      return hljs.highlightAuto(code, [lang]).value;
+    }
+  });
+
   // Initialize LLM select
   vscode.postMessage({ type: "getLLMs" });
 
@@ -49,16 +56,30 @@
   function updateContextPreview() {
     contextPreview.innerHTML = '';
     selectedCode.forEach(codeBlock => {
-      const codeElement = document.createElement('div');
-      codeElement.classList.add('code-block');
-      codeElement.textContent = codeBlock.code;
+      const wrapper = document.createElement('div');
+      wrapper.classList.add('code-block');
+
+      const fileNameElement = document.createElement('div');
+      fileNameElement.classList.add('file-name');
+      fileNameElement.textContent = codeBlock.fileName;
+      wrapper.appendChild(fileNameElement);
+
+      const codeElement = document.createElement('pre');
+      codeElement.classList.add('hljs');
+      
+      const lines = codeBlock.code.split('\n');
+      const previewLines = lines.length > 4 ? 
+        [...lines.slice(0, 3), '...', lines[lines.length - 1]] : 
+        lines;
+      
+      codeElement.innerHTML = hljs.highlightAuto(previewLines.join('\n')).value;
+      
+      wrapper.appendChild(codeElement);
       
       const removeButton = document.createElement('button');
       removeButton.textContent = 'Remove';
       removeButton.onclick = () => removeCodeBlock(codeBlock.id);
       
-      const wrapper = document.createElement('div');
-      wrapper.appendChild(codeElement);
       wrapper.appendChild(removeButton);
       contextPreview.appendChild(wrapper);
     });
@@ -82,14 +103,19 @@
         const messageElement = document.createElement("div");
         messageElement.classList.add(
           "message",
-          message.sender.toLowerCase() + "-message"
+          message.sender.toLowerCase() + "-message",
+          "markdown-body"
         );
-        messageElement.textContent = `${message.sender}: ${message.content}`;
+        messageElement.innerHTML = marked(`${message.sender}: ${message.content}`);
         chatContainer.appendChild(messageElement);
         scrollToBottom();
         break;
       case "addSelectedCode":
-        selectedCode.push({ id: message.id, code: message.code });
+        selectedCode.push({ 
+          id: message.id, 
+          code: message.code,
+          fileName: message.fileName || 'Untitled'
+        });
         updateContextPreview();
         break;
       case "updateLLMs":
@@ -105,11 +131,11 @@
         let lastMessage = chatContainer.lastElementChild;
         if (!lastMessage || !lastMessage.classList.contains("llm-message")) {
           lastMessage = document.createElement("div");
-          lastMessage.classList.add("message", "llm-message");
-          lastMessage.textContent = "LLM: ";
+          lastMessage.classList.add("message", "llm-message", "markdown-body");
+          lastMessage.innerHTML = marked("LLM: ");
           chatContainer.appendChild(lastMessage);
         }
-        lastMessage.textContent += message.content;
+        lastMessage.innerHTML = marked(lastMessage.textContent + message.content);
         scrollToBottom();
         break;
     }
