@@ -135,40 +135,64 @@
 
   function updateContextPreview() {
     contextPreview.innerHTML = "";
-    selectedCode.forEach((codeBlock) => {
-      const wrapper = document.createElement("div");
-      wrapper.classList.add("code-block");
+    if (selectedCode.length >= 2) {
+      selectedCode.forEach((codeBlock) => {
+        const wrapper = document.createElement("div");
+        wrapper.classList.add("code-block");
 
-      const fileNameElement = document.createElement("div");
-      fileNameElement.classList.add("file-name");
-      fileNameElement.textContent = codeBlock.fileName;
-      wrapper.appendChild(fileNameElement);
+        const fileInfoElement = document.createElement("div");
+        fileInfoElement.classList.add("file-info");
+        fileInfoElement.textContent = `${codeBlock.fileName} (Lines ${codeBlock.startLine}-${codeBlock.endLine})`;
+        wrapper.appendChild(fileInfoElement);
 
-      const codeElement = document.createElement("pre");
-      codeElement.classList.add("hljs");
+        const removeButton = document.createElement("button");
+        removeButton.innerHTML = `
+          <svg class="icon" viewBox="0 0 24 24" width="16" height="16">
+            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/>
+          </svg>
+        `;
+        removeButton.title = "Remove";
+        removeButton.onclick = () => removeCodeBlock(codeBlock.id);
 
-      const lines = codeBlock.code.split("\n");
-      const previewLines =
-        lines.length > 4
-          ? [...lines.slice(0, 3), "...", lines[lines.length - 1]]
-          : lines;
+        wrapper.appendChild(removeButton);
+        contextPreview.appendChild(wrapper);
+      });
+    } else {
+      selectedCode.forEach((codeBlock) => {
+        const wrapper = document.createElement("div");
+        wrapper.classList.add("code-block");
 
-      codeElement.innerHTML = hljs.highlightAuto(previewLines.join("\n")).value;
+        const fileNameElement = document.createElement("div");
+        fileNameElement.classList.add("file-name");
+        fileNameElement.textContent = codeBlock.fileName;
+        wrapper.appendChild(fileNameElement);
 
-      wrapper.appendChild(codeElement);
+        const codeElement = document.createElement("pre");
+        codeElement.classList.add("hljs");
 
-      const removeButton = document.createElement("button");
-      removeButton.innerHTML = `
-        <svg class="icon" viewBox="0 0 24 24" width="16" height="16">
-          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/>
-        </svg>
-      `;
-      removeButton.title = "Remove";
-      removeButton.onclick = () => removeCodeBlock(codeBlock.id);
+        const lines = codeBlock.code.split("\n");
+        const previewLines =
+          lines.length > 4
+            ? [...lines.slice(0, 3), "...", lines[lines.length - 1]]
+            : lines;
 
-      wrapper.appendChild(removeButton);
-      contextPreview.appendChild(wrapper);
-    });
+        codeElement.innerHTML = hljs.highlightAuto(previewLines.join("\n")).value;
+
+        wrapper.appendChild(codeElement);
+
+        const removeButton = document.createElement("button");
+        removeButton.innerHTML = `
+          <svg class="icon" viewBox="0 0 24 24" width="16" height="16">
+            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/>
+          </svg>
+        `;
+        removeButton.title = "Remove";
+        removeButton.onclick = () => removeCodeBlock(codeBlock.id);
+
+        wrapper.appendChild(removeButton);
+        contextPreview.appendChild(wrapper);
+      });
+    }
   }
 
   function removeCodeBlock(id) {
@@ -230,6 +254,8 @@
           id: message.id,
           code: message.code,
           fileName: message.fileName || "Untitled",
+          startLine: message.startLine,
+          endLine: message.endLine
         });
         updateContextPreview();
         break;

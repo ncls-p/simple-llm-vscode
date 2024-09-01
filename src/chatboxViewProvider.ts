@@ -69,9 +69,16 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
     webviewView.webview.onDidReceiveMessage(this._handleMessage, this);
   }
 
-  public addSelectedCode(code: string, fileName: string) {
+  public addSelectedCode(code: string, fileName: string, startLine: number, endLine: number) {
     if (this._view) {
-      this._view.webview.postMessage({ type: "addSelectedCode", code, fileName, id: Date.now() });
+      this._view.webview.postMessage({ 
+        type: "addSelectedCode", 
+        code, 
+        fileName, 
+        startLine, 
+        endLine, 
+        id: Date.now() 
+      });
     }
   }
 
