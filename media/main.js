@@ -56,17 +56,35 @@
   function sendMessage() {
     const message = elements.messageInput.value;
     if (message) {
+      const conversationId = state.currentConversationId || generateUniqueId();
+      const isNewConversation = !state.currentConversationId;
+
       vscode.postMessage({
         type: "sendMessage",
         message,
         context: state.selectedCode.map((c) => c.code).join("\n\n"),
         model: elements.llmSelect.value,
-        conversationId: state.currentConversationId,
+        conversationId: conversationId,
       });
+
+      if (isNewConversation) {
+        state.currentConversationId = conversationId;
+        const newConversation = {
+          id: conversationId,
+          messages: [{ role: "user", content: message }],
+          model: elements.llmSelect.value,
+        };
+        updateConversations([...state.conversations, newConversation]);
+      }
+
       elements.messageInput.value = "";
       updateContextPreview();
       elements.inputWrapper.classList.add("loading");
     }
+  }
+
+  function generateUniqueId() {
+    return "id-" + Math.random().toString(36).substr(2, 16);
   }
 
   function handleMessageInputKeydown(event) {
@@ -299,6 +317,7 @@
   }
 
   function updateConversations(conversations) {
+    state.conversations = conversations; // Save the updated conversations to state
     const previousSelectedConversation = elements.conversationSelect.value;
 
     elements.conversationSelect.innerHTML =
@@ -316,7 +335,7 @@
     ) {
       elements.conversationSelect.value = previousSelectedConversation;
     } else {
-      elements.conversationSelect.value = "new";
+      elements.conversationSelect.value = state.currentConversationId || "new";
     }
   }
 
