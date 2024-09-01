@@ -132,6 +132,9 @@
   }
 
   function renderMarkdown(content) {
+    if (content.startsWith("````")) {
+      content = "\n" + content;
+    }
     return marked(content, {
       breaks: true,
       gfm: true,
