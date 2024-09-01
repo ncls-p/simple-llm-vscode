@@ -6,6 +6,7 @@ import * as path from "path";
 export class ChatboxViewProvider implements vscode.WebviewViewProvider {
   private _view?: vscode.WebviewView;
   private _settingsPath: string;
+  private _conversationsPath: string;
 
   constructor(
     private readonly _extensionUri: vscode.Uri,
@@ -15,7 +16,12 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
       context.globalStorageUri.fsPath,
       "llm-settings.json"
     );
+    this._conversationsPath = path.join(
+      context.globalStorageUri.fsPath,
+      "conversations.json"
+    );
     this._ensureSettingsFile();
+    this._ensureConversationsFile();
   }
 
   private _ensureSettingsFile() {
@@ -37,6 +43,12 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
         this._settingsPath,
         JSON.stringify(defaultSettings, null, 2)
       );
+    }
+  }
+
+  private _ensureConversationsFile() {
+    if (!fs.existsSync(this._conversationsPath)) {
+      fs.writeFileSync(this._conversationsPath, JSON.stringify([], null, 2));
     }
   }
 
@@ -69,7 +81,8 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
         await this._sendMessageToLLM(
           message.message,
           message.context,
-          message.model
+          message.model,
+          message.conversationId
         );
         break;
       case "getLLMs":
@@ -77,6 +90,15 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
         break;
       case "openSettings":
         vscode.commands.executeCommand("llmChatbox.openSettings");
+        break;
+      case "getConversations":
+        this._sendConversationsToWebview();
+        break;
+      case "deleteConversation":
+        this._deleteConversation(message.conversationId);
+        break;
+      case "loadConversation":
+        this._loadConversation(message.conversationId);
         break;
     }
   }
@@ -104,7 +126,8 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
   private async _sendMessageToLLM(
     message: string,
     context: string,
-    modelName: string
+    modelName: string,
+    conversationId: string | null
   ) {
     const settings = this._getSettings();
     const model = settings.models.find((m: any) => m.name === modelName);
@@ -140,6 +163,22 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
         }
       );
 
+      const newMessage = { role: "user", content: message };
+      let conversation;
+      if (conversationId) {
+        conversation = this._getConversations().find((c: any) => c.id === conversationId);
+        if (conversation) {
+          conversation.messages.push(newMessage);
+        }
+      }
+      if (!conversation) {
+        conversation = {
+          id: Date.now().toString(),
+          messages: [newMessage],
+          model: modelName,
+        };
+      }
+
       if (this._view) {
         this._view.webview.postMessage({
           type: "addMessage",
@@ -149,6 +188,7 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
       }
 
       let buffer = "";
+      let llmResponse = "";
       response.data.on("data", (chunk: Buffer) => {
         const lines = chunk.toString().split("\n");
         for (const line of lines) {
@@ -157,6 +197,7 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
             if (data === "[DONE]") {
               if (buffer) {
                 this._sendStreamToWebview(buffer);
+                llmResponse += buffer;
                 buffer = "";
               }
             } else {
@@ -167,6 +208,7 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
                   buffer += content;
                   if (buffer.endsWith("\n") || buffer.length > 80) {
                     this._sendStreamToWebview(buffer);
+                    llmResponse += buffer;
                     buffer = "";
                   }
                 }
@@ -181,7 +223,10 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
       response.data.on("end", () => {
         if (buffer) {
           this._sendStreamToWebview(buffer);
+          llmResponse += buffer;
         }
+        conversation.messages.push({ role: "assistant", content: llmResponse });
+        this._saveConversation(conversation);
       });
     } catch (error) {
       vscode.window.showErrorMessage("Error communicating with the LLM API");
@@ -219,6 +264,10 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
         <div id="input-container">
           <div id="controls">
             <select id="llm-select"></select>
+            <select id="conversation-select">
+              <option value="new">New Conversation</option>
+            </select>
+            <button id="delete-conversation">Delete Conversation</button>
             <button id="auto-scroll">Scroll: On</button>
             <button id="settings-button">Settings</button>
           </div>
@@ -232,3 +281,52 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
     `;
   }
 }
+  private _sendConversationsToWebview() {
+    const conversations = this._getConversations();
+    if (this._view) {
+      this._view.webview.postMessage({
+        type: "updateConversations",
+        conversations: conversations,
+      });
+    }
+  }
+
+  private _getConversations() {
+    try {
+      const conversationsContent = fs.readFileSync(this._conversationsPath, "utf8");
+      return JSON.parse(conversationsContent);
+    } catch (error) {
+      console.error("Error reading conversations file:", error);
+      return [];
+    }
+  }
+
+  private _saveConversation(conversation: any) {
+    const conversations = this._getConversations();
+    const existingIndex = conversations.findIndex((c: any) => c.id === conversation.id);
+    if (existingIndex !== -1) {
+      conversations[existingIndex] = conversation;
+    } else {
+      conversations.push(conversation);
+    }
+    fs.writeFileSync(this._conversationsPath, JSON.stringify(conversations, null, 2));
+    this._sendConversationsToWebview();
+  }
+
+  private _deleteConversation(conversationId: string) {
+    let conversations = this._getConversations();
+    conversations = conversations.filter((c: any) => c.id !== conversationId);
+    fs.writeFileSync(this._conversationsPath, JSON.stringify(conversations, null, 2));
+    this._sendConversationsToWebview();
+  }
+
+  private _loadConversation(conversationId: string) {
+    const conversations = this._getConversations();
+    const conversation = conversations.find((c: any) => c.id === conversationId);
+    if (conversation && this._view) {
+      this._view.webview.postMessage({
+        type: "loadConversation",
+        conversation: conversation,
+      });
+    }
+  }

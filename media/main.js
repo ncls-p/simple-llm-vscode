@@ -5,11 +5,14 @@
   const contextPreview = document.getElementById("context-preview");
   const sendButton = document.getElementById("send-button");
   const llmSelect = document.getElementById("llm-select");
+  const conversationSelect = document.getElementById("conversation-select");
+  const deleteConversationButton = document.getElementById("delete-conversation");
   const autoScrollButton = document.getElementById("auto-scroll");
   const settingsButton = document.getElementById("settings-button");
 
   let selectedCode = [];
   let autoScroll = true;
+  let currentConversationId = null;
 
   // Configure marked for syntax highlighting
   marked.setOptions({
@@ -18,8 +21,9 @@
     }
   });
 
-  // Initialize LLM select
+  // Initialize LLM select and conversations
   vscode.postMessage({ type: "getLLMs" });
+  vscode.postMessage({ type: "getConversations" });
 
   sendButton.addEventListener("click", sendMessage);
   messageInput.addEventListener("keydown", (event) => {
@@ -39,6 +43,26 @@
     vscode.postMessage({ type: "openSettings" });
   });
 
+  conversationSelect.addEventListener("change", () => {
+    const selectedConversationId = conversationSelect.value;
+    if (selectedConversationId === "new") {
+      currentConversationId = null;
+      chatContainer.innerHTML = "";
+    } else {
+      currentConversationId = selectedConversationId;
+      vscode.postMessage({ type: "loadConversation", conversationId: currentConversationId });
+    }
+  });
+
+  deleteConversationButton.addEventListener("click", () => {
+    if (currentConversationId) {
+      vscode.postMessage({ type: "deleteConversation", conversationId: currentConversationId });
+      currentConversationId = null;
+      chatContainer.innerHTML = "";
+      conversationSelect.value = "new";
+    }
+  });
+
   function sendMessage() {
     const message = messageInput.value;
     if (message) {
@@ -47,6 +71,7 @@
         message,
         context: selectedCode.map(c => c.code).join('\n\n'),
         model: llmSelect.value,
+        conversationId: currentConversationId,
       });
       messageInput.value = "";
       updateContextPreview();
@@ -137,6 +162,29 @@
           option.textContent = llm.name;
           llmSelect.appendChild(option);
         });
+        break;
+      case "updateConversations":
+        conversationSelect.innerHTML = "<option value='new'>New Conversation</option>";
+        message.conversations.forEach((conversation) => {
+          const option = document.createElement("option");
+          option.value = conversation.id;
+          option.textContent = `Conversation ${conversation.id}`;
+          conversationSelect.appendChild(option);
+        });
+        break;
+      case "loadConversation":
+        chatContainer.innerHTML = "";
+        message.conversation.messages.forEach((msg) => {
+          const messageElement = document.createElement("div");
+          messageElement.classList.add(
+            "message",
+            msg.role + "-message",
+            "markdown-body"
+          );
+          messageElement.innerHTML = renderMarkdown(`**${msg.role === "user" ? "User" : "LLM"}:** ${msg.content}`);
+          chatContainer.appendChild(messageElement);
+        });
+        scrollToBottom();
         break;
       case "streamResponse":
         let lastMessage = chatContainer.lastElementChild;
