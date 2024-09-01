@@ -1,8 +1,13 @@
 {
   "name": "simple-llm",
-  "displayName": "simple-llm",
-  "description": "",
-  "version": "0.0.1",
+  "displayName": "Simple-LLM",
+  "description": "Simple LLM is a powerful VS Code extension that integrates Large Language Models (LLMs) directly into your development environment. It provides an intuitive interface for interacting with AI models, enhancing your coding experience with intelligent assistance.",
+  "version": "1.0.0",
+  "publisher": "nclsp",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ncls-p/simple-llm-vscode"
+  },
   "engines": {
     "vscode": "^1.92.0"
   },

@@ -14,7 +14,7 @@ Simple LLM is a powerful VS Code extension that integrates Large Language Models
 
 1. The extension adds a new view to VS Code's sidebar, providing a chat interface.
 2. Users can select code in their editor and send it to the chat for context.
-3. The extension communicates with configured LLM APIs to generate responses.
+3. The extension communicates with configured LLM APIs (Openai Compatible) to generate responses.
 4. Responses are streamed back to the chat interface in real-time.
 5. Conversations can be saved and loaded for future reference.
 
@@ -31,23 +31,13 @@ Simple LLM is a powerful VS Code extension that integrates Large Language Models
 To configure the extension:
 
 1. Open VS Code settings (File > Preferences > Settings).
-2. Search for "Simple LLM" in the settings search bar.
-3. Configure the following settings:
-   - `simpleLLM.defaultModel`: Set your preferred default LLM model.
-   - `simpleLLM.apiKey`: Enter your API key for the LLM service.
-   - `simpleLLM.maxTokens`: Set the maximum number of tokens for responses.
-   - `simpleLLM.temperature`: Adjust the randomness of the AI's responses (0.0 to 1.0).
+2. Search for the setting button in the sidebar and configure your models:`name`, `apiUrl`, `apiToken`, `modelName`, `systemPrompt`, `temperature  `
 
 ## Requirements
 
-- Visual Studio Code version 1.60.0 or higher.
-- An active internet connection for API communication.
+- Visual Studio Code version 1.92.0 or higher.
+- An openai compatible API
 - Valid API key(s) for your chosen LLM service(s).
-
-## Known Issues
-
-- The extension may experience slower performance with very large code selections.
-- Some LLM models may have usage limitations based on your API plan.
 
 ## Release Notes
 
@@ -62,6 +52,6 @@ To configure the extension:
 
 ## Feedback and Contributions
 
-We welcome your feedback and contributions! Please report any issues or suggest features on our [GitHub repository](https://github.com/yourusername/simple-llm).
+We welcome your feedback and contributions! Please report any issues or suggest features on our [GitHub repository](https://github.com/ncls-p/simple-llm-vscode).
 
 **Enjoy coding with AI assistance!**
