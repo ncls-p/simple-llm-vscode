@@ -1,6 +1,6 @@
 {
-  "name": "vscode-llm",
-  "displayName": "vscode-llm",
+  "name": "simple-llm",
+  "displayName": "simple-llm",
   "description": "",
   "version": "0.0.1",
   "engines": {
@@ -95,7 +95,6 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/jquery": "^3.5.30",
     "@types/mocha": "^10.0.7",
     "@types/node": "20.x",
     "@types/vscode": "^1.92.0",
