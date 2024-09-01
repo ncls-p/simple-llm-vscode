@@ -180,7 +180,7 @@ class LLMFixCodeActionProvider implements vscode.CodeActionProvider {
     action.command = {
       title: "Fix using simple-llm-vscode",
       command: "llmChatbox.fixUsingSimpleLLM",
-      arguments: [document, diagnostics[0].message],
+      arguments: [document, `Fix this code: ${diagnostics[0].message}`],
     };
 
     return [action];

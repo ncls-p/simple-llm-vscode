@@ -127,9 +127,8 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
       
       this.addSelectedCode(fullText, fileName);
       
-      const fixMessage = `fix this code:\n\n${errorMessage}`;
       await this._sendMessageToLLM(
-        fixMessage,
+        errorMessage,
         fullText,
         this._getSettings().models[0].name,
         null
