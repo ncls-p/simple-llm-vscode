@@ -216,7 +216,7 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
         <div id="input-container">
           <div id="controls">
             <select id="llm-select"></select>
-            <button id="auto-scroll">Auto-scroll: On</button>
+            <button id="auto-scroll">Scroll: On</button>
             <button id="settings-button">Settings</button>
           </div>
           <textarea id="message-input" placeholder="Type your message..."></textarea>
