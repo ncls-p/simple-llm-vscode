@@ -110,7 +110,7 @@ export function activate(context: vscode.ExtensionContext) {
         const selection = editor.selection;
         const selectedText = editor.document.getText(selection);
         if (selectedText) {
-          chatboxViewProvider.addSelectedCode(selectedText);
+          chatboxViewProvider.addSelectedCode(selectedText, editor.document.fileName);
         }
       }
     })
@@ -128,6 +128,29 @@ export function activate(context: vscode.ExtensionContext) {
           vscode.window.showTextDocument(doc);
         });
     })
+  );
+
+  // Register the code action provider
+  context.subscriptions.push(
+    vscode.languages.registerCodeActionsProvider(
+      { scheme: 'file', language: '*' },
+      new LLMFixCodeActionProvider(chatboxViewProvider),
+      {
+        providedCodeActionKinds: [vscode.CodeActionKind.QuickFix]
+      }
+    )
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "llmChatbox.fixUsingSimpleLLM",
+      (document: vscode.TextDocument, errorMessage: string) => {
+        const fullText = document.getText();
+        const fileName = document.fileName;
+        chatboxViewProvider.addSelectedCode(fullText, fileName);
+        const fixMessage = `fix this code:\n\n${errorMessage}`;
+        chatboxViewProvider.sendMessageToLLM(fixMessage, fullText);
+      }
+    )
   );
 }
 
