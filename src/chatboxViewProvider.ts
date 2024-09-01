@@ -299,6 +299,11 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
             <select id="conversation-select">
               <option value="new">New Conversation</option>
             </select>
+            <button id="auto-scroll" title="Auto-scroll">
+              <svg class="icon" viewBox="0 0 24 24">
+                <path d="M16 13h-3V3h-2v10H8l4 4 4-4zM4 19v2h16v-2H4z"/>
+              </svg>
+            </button>
             <button id="new-chat-button" title="New Chat">
               <svg class="icon" viewBox="0 0 24 24">
                 <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
@@ -307,11 +312,6 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
             <button id="delete-conversation" title="Delete Conversation">
               <svg class="icon" viewBox="0 0 24 24">
                 <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-              </svg>
-            </button>
-            <button id="auto-scroll" title="Auto-scroll">
-              <svg class="icon" viewBox="0 0 24 24">
-                <path d="M16 13h-3V3h-2v10H8l4 4 4-4zM4 19v2h16v-2H4z"/>
               </svg>
             </button>
             <button id="settings-button" title="Settings">
