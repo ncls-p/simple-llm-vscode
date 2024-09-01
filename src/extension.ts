@@ -110,7 +110,10 @@ export function activate(context: vscode.ExtensionContext) {
         const selection = editor.selection;
         const selectedText = editor.document.getText(selection);
         if (selectedText) {
-          chatboxViewProvider.addSelectedCode(selectedText, editor.document.fileName);
+          chatboxViewProvider.addSelectedCode(
+            selectedText,
+            editor.document.fileName
+          );
         }
       }
     })
@@ -133,10 +136,10 @@ export function activate(context: vscode.ExtensionContext) {
   // Register the code action provider
   context.subscriptions.push(
     vscode.languages.registerCodeActionsProvider(
-      { scheme: 'file', language: '*' },
+      { scheme: "file", language: "*" },
       new LLMFixCodeActionProvider(chatboxViewProvider),
       {
-        providedCodeActionKinds: [vscode.CodeActionKind.QuickFix]
+        providedCodeActionKinds: [vscode.CodeActionKind.QuickFix],
       }
     )
   );
@@ -159,17 +162,25 @@ export function deactivate() {}
 class LLMFixCodeActionProvider implements vscode.CodeActionProvider {
   constructor(private chatboxViewProvider: ChatboxViewProvider) {}
 
-  provideCodeActions(document: vscode.TextDocument, range: vscode.Range | vscode.Selection, context: vscode.CodeActionContext, token: vscode.CancellationToken): vscode.ProviderResult<(vscode.Command | vscode.CodeAction)[]> {
+  provideCodeActions(
+    document: vscode.TextDocument,
+    range: vscode.Range | vscode.Selection,
+    context: vscode.CodeActionContext,
+    token: vscode.CancellationToken
+  ): vscode.ProviderResult<(vscode.Command | vscode.CodeAction)[]> {
     const diagnostics = context.diagnostics;
     if (diagnostics.length === 0) {
       return [];
     }
 
-    const action = new vscode.CodeAction('Fix using simple-llm-vscode', vscode.CodeActionKind.QuickFix);
+    const action = new vscode.CodeAction(
+      "Fix using simple-llm-vscode",
+      vscode.CodeActionKind.QuickFix
+    );
     action.command = {
-      title: 'Fix using simple-llm-vscode',
-      command: 'llmChatbox.fixUsingSimpleLLM',
-      arguments: [document, diagnostics[0].message]
+      title: "Fix using simple-llm-vscode",
+      command: "llmChatbox.fixUsingSimpleLLM",
+      arguments: [document, diagnostics[0].message],
     };
 
     return [action];
