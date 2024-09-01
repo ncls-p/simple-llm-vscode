@@ -3,10 +3,25 @@ import axios from "axios";
 import * as fs from "fs";
 import * as path from "path";
 
+interface LLMModel {
+  name: string;
+  apiUrl: string;
+  apiToken: string;
+  modelName: string;
+  systemPrompt: string;
+  temperature: number;
+}
+
+interface Conversation {
+  id: string;
+  messages: Array<{ role: string; content: string }>;
+  model: string;
+}
+
 export class ChatboxViewProvider implements vscode.WebviewViewProvider {
   private _view?: vscode.WebviewView;
-  private _settingsPath: string;
-  private _conversationsPath: string;
+  private readonly _settingsPath: string;
+  private readonly _conversationsPath: string;
 
   constructor(
     private readonly _extensionUri: vscode.Uri,
@@ -24,39 +39,11 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
     this._ensureConversationsFile();
   }
 
-  private _ensureSettingsFile() {
-    if (!fs.existsSync(this._settingsPath)) {
-      const defaultSettings = {
-        models: [
-          {
-            name: "Default Model",
-            apiUrl: "https://api.openai.com/v1/chat/completions",
-            apiToken: "YOUR_API_TOKEN",
-            modelName: "gpt-3.5-turbo",
-            systemPrompt: "You are a helpful assistant.",
-            temperature: 0.7,
-          },
-        ],
-      };
-      fs.mkdirSync(path.dirname(this._settingsPath), { recursive: true });
-      fs.writeFileSync(
-        this._settingsPath,
-        JSON.stringify(defaultSettings, null, 2)
-      );
-    }
-  }
-
-  private _ensureConversationsFile() {
-    if (!fs.existsSync(this._conversationsPath)) {
-      fs.writeFileSync(this._conversationsPath, JSON.stringify([], null, 2));
-    }
-  }
-
   public resolveWebviewView(
     webviewView: vscode.WebviewView,
-    context: vscode.WebviewViewResolveContext,
+    _context: vscode.WebviewViewResolveContext,
     _token: vscode.CancellationToken
-  ) {
+  ): void {
     this._view = webviewView;
 
     webviewView.webview.options = {
@@ -66,35 +53,36 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
 
     webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
-    webviewView.webview.onDidReceiveMessage(this._handleMessage, this);
+    webviewView.webview.onDidReceiveMessage(this._handleMessage.bind(this));
   }
 
-  public addSelectedCode(code: string, fileName: string, startLine?: number, endLine?: number) {
-    if (this._view) {
-      this._view.webview.postMessage({ 
-        type: "addSelectedCode", 
-        code, 
-        fileName, 
-        startLine: startLine !== undefined ? startLine : null,
-        endLine: endLine !== undefined ? endLine : null,
-        id: Date.now() 
-      });
-    }
+  public addSelectedCode(
+    code: string,
+    fileName: string,
+    startLine?: number,
+    endLine?: number
+  ): void {
+    this._view?.webview.postMessage({
+      type: "addSelectedCode",
+      code,
+      fileName,
+      startLine: startLine ?? null,
+      endLine: endLine ?? null,
+      id: Date.now(),
+    });
   }
 
-  public sendMessageToLLM(message: string, context: string) {
-    if (this._view) {
-      this._view.webview.postMessage({
-        type: "sendMessage",
-        message,
-        context,
-        model: this._getSettings().models[0].name,
-        conversationId: null
-      });
-    }
+  public sendMessageToLLM(message: string, context: string): void {
+    this._view?.webview.postMessage({
+      type: "sendMessage",
+      message,
+      context,
+      model: this._getSettings().models[0].name,
+      conversationId: null,
+    });
   }
 
-  private async _handleMessage(message: any) {
+  private async _handleMessage(message: any): Promise<void> {
     switch (message.type) {
       case "sendMessage":
         await this._sendMessageToLLM(
@@ -125,15 +113,43 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
     }
   }
 
-  private async _fixUsingSimpleLLM(errorMessage: string) {
+  private _ensureSettingsFile(): void {
+    if (!fs.existsSync(this._settingsPath)) {
+      const defaultSettings = {
+        models: [
+          {
+            name: "Default Model",
+            apiUrl: "https://api.openai.com/v1/chat/completions",
+            apiToken: "YOUR_API_TOKEN",
+            modelName: "gpt-3.5-turbo",
+            systemPrompt: "You are a helpful assistant.",
+            temperature: 0.7,
+          },
+        ],
+      };
+      fs.mkdirSync(path.dirname(this._settingsPath), { recursive: true });
+      fs.writeFileSync(
+        this._settingsPath,
+        JSON.stringify(defaultSettings, null, 2)
+      );
+    }
+  }
+
+  private _ensureConversationsFile(): void {
+    if (!fs.existsSync(this._conversationsPath)) {
+      fs.writeFileSync(this._conversationsPath, JSON.stringify([], null, 2));
+    }
+  }
+
+  private async _fixUsingSimpleLLM(errorMessage: string): Promise<void> {
     const editor = vscode.window.activeTextEditor;
     if (editor) {
       const document = editor.document;
       const fullText = document.getText();
       const fileName = document.fileName;
-      
+
       this.addSelectedCode(fullText, fileName);
-      
+
       await this._sendMessageToLLM(
         errorMessage,
         fullText,
@@ -143,7 +159,7 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
     }
   }
 
-  private _getSettings() {
+  private _getSettings(): { models: LLMModel[] } {
     try {
       const settingsContent = fs.readFileSync(this._settingsPath, "utf8");
       return JSON.parse(settingsContent);
@@ -153,14 +169,12 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
     }
   }
 
-  private _sendLLMsToWebview() {
+  private _sendLLMsToWebview(): void {
     const settings = this._getSettings();
-    if (this._view) {
-      this._view.webview.postMessage({
-        type: "updateLLMs",
-        llms: settings.models,
-      });
-    }
+    this._view?.webview.postMessage({
+      type: "updateLLMs",
+      llms: settings.models,
+    });
   }
 
   private async _sendMessageToLLM(
@@ -168,9 +182,9 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
     context: string,
     modelName: string,
     conversationId: string | null
-  ) {
+  ): Promise<void> {
     const settings = this._getSettings();
-    const model = settings.models.find((m: any) => m.name === modelName);
+    const model = settings.models.find((m) => m.name === modelName);
 
     if (!model) {
       vscode.window.showErrorMessage(
@@ -179,11 +193,17 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
       return;
     }
 
+    const conversations = this._getConversations();
+    const conversationStrings = conversations.map((c) => JSON.stringify(c));
+    vscode.window.showInformationMessage(conversationStrings.join(", "));
+
     let conversation;
     if (conversationId) {
-      conversation = this._getConversations().find((c: any) => c.id === conversationId);
-    }
-    if (!conversation) {
+      conversation = conversations.find((c) => c.id === conversationId);
+      if (!conversation) {
+        conversation = { id: conversationId, messages: [], model: modelName };
+      }
+    } else {
       conversation = {
         id: Date.now().toString(),
         messages: [],
@@ -191,8 +211,16 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
       };
     }
 
+    vscode.window.showInformationMessage(
+      "Conversation ID: " + JSON.stringify(conversation)
+    );
+
     const newMessage = { role: "user", content: message };
     conversation.messages.push(newMessage);
+
+    vscode.window.showInformationMessage(
+      "Conversation messages: " + JSON.stringify(conversation.messages)
+    );
 
     try {
       const response = await axios.post(
@@ -201,9 +229,12 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
           model: model.modelName,
           messages: [
             { role: "system", content: model.systemPrompt },
-            ...conversation.messages.map((msg: any) => ({
+            ...conversation.messages.map((msg) => ({
               role: msg.role,
-              content: msg.role === "user" ? `Context:\n${context}\n\nQuestion: ${msg.content}` : msg.content,
+              content:
+                msg.role === "user"
+                  ? `Context:\n${context}\n\nQuestion: ${msg.content}`
+                  : msg.content,
             })),
           ],
           temperature: model.temperature,
@@ -218,16 +249,15 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
         }
       );
 
-      if (this._view) {
-        this._view.webview.postMessage({
-          type: "addMessage",
-          sender: "User",
-          content: message,
-        });
-      }
+      this._view?.webview.postMessage({
+        type: "addMessage",
+        sender: "User",
+        content: message,
+      });
 
       let buffer = "";
       let llmResponse = "";
+
       response.data.on("data", (chunk: Buffer) => {
         const lines = chunk.toString().split("\n");
         for (const line of lines) {
@@ -272,13 +302,11 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
     }
   }
 
-  private _sendStreamToWebview(content: string) {
-    if (this._view) {
-      this._view.webview.postMessage({ type: "streamResponse", content });
-    }
+  private _sendStreamToWebview(content: string): void {
+    this._view?.webview.postMessage({ type: "streamResponse", content });
   }
 
-  private _getHtmlForWebview(webview: vscode.Webview) {
+  private _getHtmlForWebview(webview: vscode.Webview): string {
     const scriptUri = webview.asWebviewUri(
       vscode.Uri.joinPath(this._extensionUri, "media", "main.js")
     );
@@ -350,19 +378,20 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
     `;
   }
 
-  private _sendConversationsToWebview() {
+  private _sendConversationsToWebview(): void {
     const conversations = this._getConversations();
-    if (this._view) {
-      this._view.webview.postMessage({
-        type: "updateConversations",
-        conversations: conversations,
-      });
-    }
+    this._view?.webview.postMessage({
+      type: "updateConversations",
+      conversations: conversations,
+    });
   }
 
-  private _getConversations() {
+  private _getConversations(): Conversation[] {
     try {
-      const conversationsContent = fs.readFileSync(this._conversationsPath, "utf8");
+      const conversationsContent = fs.readFileSync(
+        this._conversationsPath,
+        "utf8"
+      );
       return JSON.parse(conversationsContent);
     } catch (error) {
       console.error("Error reading conversations file:", error);
@@ -370,28 +399,36 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
     }
   }
 
-  private _saveConversation(conversation: any) {
+  private _saveConversation(conversation: Conversation): void {
     const conversations = this._getConversations();
-    const existingIndex = conversations.findIndex((c: any) => c.id === conversation.id);
+    const existingIndex = conversations.findIndex(
+      (c) => c.id === conversation.id
+    );
     if (existingIndex !== -1) {
       conversations[existingIndex] = conversation;
     } else {
       conversations.push(conversation);
     }
-    fs.writeFileSync(this._conversationsPath, JSON.stringify(conversations, null, 2));
+    fs.writeFileSync(
+      this._conversationsPath,
+      JSON.stringify(conversations, null, 2)
+    );
     this._sendConversationsToWebview();
   }
 
-  private _deleteConversation(conversationId: string) {
+  private _deleteConversation(conversationId: string): void {
     let conversations = this._getConversations();
-    conversations = conversations.filter((c: any) => c.id !== conversationId);
-    fs.writeFileSync(this._conversationsPath, JSON.stringify(conversations, null, 2));
+    conversations = conversations.filter((c) => c.id !== conversationId);
+    fs.writeFileSync(
+      this._conversationsPath,
+      JSON.stringify(conversations, null, 2)
+    );
     this._sendConversationsToWebview();
   }
 
-  private _loadConversation(conversationId: string) {
+  private _loadConversation(conversationId: string): void {
     const conversations = this._getConversations();
-    const conversation = conversations.find((c: any) => c.id === conversationId);
+    const conversation = conversations.find((c) => c.id === conversationId);
     if (conversation && this._view) {
       this._view.webview.postMessage({
         type: "loadConversation",
