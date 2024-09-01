@@ -6,7 +6,9 @@
   const sendButton = document.getElementById("send-button");
   const llmSelect = document.getElementById("llm-select");
   const conversationSelect = document.getElementById("conversation-select");
-  const deleteConversationButton = document.getElementById("delete-conversation");
+  const deleteConversationButton = document.getElementById(
+    "delete-conversation"
+  );
   const autoScrollButton = document.getElementById("auto-scroll");
   const settingsButton = document.getElementById("settings-button");
   const newChatButton = document.getElementById("new-chat-button");
@@ -19,7 +21,7 @@
   marked.setOptions({
     highlight: function (code, lang) {
       return hljs.highlightAuto(code, [lang]).value;
-    }
+    },
   });
 
   // Initialize LLM select and conversations
@@ -56,13 +58,19 @@
       chatContainer.innerHTML = "";
     } else {
       currentConversationId = selectedConversationId;
-      vscode.postMessage({ type: "loadConversation", conversationId: currentConversationId });
+      vscode.postMessage({
+        type: "loadConversation",
+        conversationId: currentConversationId,
+      });
     }
   });
 
   deleteConversationButton.addEventListener("click", () => {
     if (currentConversationId) {
-      vscode.postMessage({ type: "deleteConversation", conversationId: currentConversationId });
+      vscode.postMessage({
+        type: "deleteConversation",
+        conversationId: currentConversationId,
+      });
       currentConversationId = null;
       chatContainer.innerHTML = "";
       conversationSelect.value = "new";
@@ -75,53 +83,54 @@
       vscode.postMessage({
         type: "sendMessage",
         message,
-        context: selectedCode.map(c => c.code).join('\n\n'),
+        context: selectedCode.map((c) => c.code).join("\n\n"),
         model: llmSelect.value,
         conversationId: currentConversationId,
       });
       messageInput.value = "";
       updateContextPreview();
-      
+
       // Show loading spinner
-      document.getElementById('input-wrapper').classList.add('loading');
+      document.getElementById("input-wrapper").classList.add("loading");
     }
   }
 
   function updateContextPreview() {
-    contextPreview.innerHTML = '';
-    selectedCode.forEach(codeBlock => {
-      const wrapper = document.createElement('div');
-      wrapper.classList.add('code-block');
+    contextPreview.innerHTML = "";
+    selectedCode.forEach((codeBlock) => {
+      const wrapper = document.createElement("div");
+      wrapper.classList.add("code-block");
 
-      const fileNameElement = document.createElement('div');
-      fileNameElement.classList.add('file-name');
+      const fileNameElement = document.createElement("div");
+      fileNameElement.classList.add("file-name");
       fileNameElement.textContent = codeBlock.fileName;
       wrapper.appendChild(fileNameElement);
 
-      const codeElement = document.createElement('pre');
-      codeElement.classList.add('hljs');
-      
-      const lines = codeBlock.code.split('\n');
-      const previewLines = lines.length > 4 ? 
-        [...lines.slice(0, 3), '...', lines[lines.length - 1]] : 
-        lines;
-      
-      codeElement.innerHTML = hljs.highlightAuto(previewLines.join('\n')).value;
-      
+      const codeElement = document.createElement("pre");
+      codeElement.classList.add("hljs");
+
+      const lines = codeBlock.code.split("\n");
+      const previewLines =
+        lines.length > 4
+          ? [...lines.slice(0, 3), "...", lines[lines.length - 1]]
+          : lines;
+
+      codeElement.innerHTML = hljs.highlightAuto(previewLines.join("\n")).value;
+
       wrapper.appendChild(codeElement);
-      
-      const removeButton = document.createElement('button');
+
+      const removeButton = document.createElement("button");
       removeButton.innerHTML = '<i class="icon-trash"></i>';
-      removeButton.title = 'Remove';
+      removeButton.title = "Remove";
       removeButton.onclick = () => removeCodeBlock(codeBlock.id);
-      
+
       wrapper.appendChild(removeButton);
       contextPreview.appendChild(wrapper);
     });
   }
 
   function removeCodeBlock(id) {
-    selectedCode = selectedCode.filter(c => c.id !== id);
+    selectedCode = selectedCode.filter((c) => c.id !== id);
     updateContextPreview();
   }
 
@@ -132,24 +141,24 @@
   }
 
   function renderMarkdown(content) {
-    if (content.startsWith("````")) {
+    if (content.startsWith("```")) {
       content = "\n" + content;
     }
     return marked(content, {
       breaks: true,
       gfm: true,
       highlight: function (code, lang) {
-        const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+        const language = hljs.getLanguage(lang) ? lang : "plaintext";
         return hljs.highlight(code, { language }).value;
-      }
+      },
     });
   }
 
   function addDeleteButton(messageElement) {
-    const deleteButton = document.createElement('button');
-    deleteButton.classList.add('delete-message');
-    deleteButton.innerHTML = '&times;';
-    deleteButton.title = 'Delete message';
+    const deleteButton = document.createElement("button");
+    deleteButton.classList.add("delete-message");
+    deleteButton.innerHTML = "&times;";
+    deleteButton.title = "Delete message";
     deleteButton.onclick = () => {
       messageElement.remove();
       // You may want to add logic here to update the conversation in the backend
@@ -167,16 +176,18 @@
           message.sender.toLowerCase() + "-message",
           "markdown-body"
         );
-        messageElement.innerHTML = renderMarkdown(`**${message.sender}:** ${message.content}`);
+        messageElement.innerHTML = renderMarkdown(
+          `**${message.sender}:** ${message.content}`
+        );
         addDeleteButton(messageElement);
         chatContainer.appendChild(messageElement);
         scrollToBottom();
         break;
       case "addSelectedCode":
-        selectedCode.push({ 
-          id: message.id, 
+        selectedCode.push({
+          id: message.id,
           code: message.code,
-          fileName: message.fileName || 'Untitled'
+          fileName: message.fileName || "Untitled",
         });
         updateContextPreview();
         break;
@@ -190,7 +201,8 @@
         });
         break;
       case "updateConversations":
-        conversationSelect.innerHTML = "<option value='new'>New Conversation</option>";
+        conversationSelect.innerHTML =
+          "<option value='new'>New Conversation</option>";
         message.conversations.forEach((conversation) => {
           const option = document.createElement("option");
           option.value = conversation.id;
@@ -207,7 +219,9 @@
             msg.role + "-message",
             "markdown-body"
           );
-          messageElement.innerHTML = renderMarkdown(`**${msg.role === "user" ? "User" : "LLM"}:** ${msg.content}`);
+          messageElement.innerHTML = renderMarkdown(
+            `**${msg.role === "user" ? "User" : "LLM"}:** ${msg.content}`
+          );
           addDeleteButton(messageElement);
           chatContainer.appendChild(messageElement);
         });
@@ -228,10 +242,10 @@
         lastMessage.innerHTML = renderMarkdown("**LLM:** " + newContent);
         addDeleteButton(lastMessage);
         scrollToBottom();
-        
+
         // If the message is complete (ends with a newline), hide the loading spinner
-        if (message.content.endsWith('\n')) {
-          document.getElementById('input-wrapper').classList.remove('loading');
+        if (message.content.endsWith("\n")) {
+          document.getElementById("input-wrapper").classList.remove("loading");
         }
         break;
     }
