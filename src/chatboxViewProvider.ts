@@ -100,6 +100,28 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
       case "loadConversation":
         this._loadConversation(message.conversationId);
         break;
+      case "fixUsingSimpleLLM":
+        this._fixUsingSimpleLLM(message.errorMessage);
+        break;
+    }
+  }
+
+  private async _fixUsingSimpleLLM(errorMessage: string) {
+    const editor = vscode.window.activeTextEditor;
+    if (editor) {
+      const document = editor.document;
+      const fullText = document.getText();
+      const fileName = document.fileName;
+      
+      this.addSelectedCode(fullText, fileName);
+      
+      const fixMessage = `fix this code:\n\n${errorMessage}`;
+      await this._sendMessageToLLM(
+        fixMessage,
+        fullText,
+        this._getSettings().models[0].name,
+        null
+      );
     }
   }
 

@@ -95,6 +95,22 @@
     }
   }
 
+  function addFixButton() {
+    const fixButton = document.createElement("button");
+    fixButton.textContent = "Fix using simple-llm-vscode";
+    fixButton.onclick = () => {
+      const errorMessage = document.querySelector(".error-message")?.textContent || "";
+      vscode.postMessage({
+        type: "fixUsingSimpleLLM",
+        errorMessage,
+      });
+    };
+    document.body.appendChild(fixButton);
+  }
+
+  // Call this function when the webview is initialized
+  addFixButton();
+
   function updateContextPreview() {
     contextPreview.innerHTML = "";
     selectedCode.forEach((codeBlock) => {
