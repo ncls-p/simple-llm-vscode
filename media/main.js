@@ -154,6 +154,8 @@
         fileInfoElement.textContent = `${codeBlock.fileName}${lineInfo}`;
         wrapper.appendChild(fileInfoElement);
 
+        console.log("Code block:", codeBlock); // Add this line for debugging
+
         const removeButton = document.createElement("button");
         removeButton.innerHTML = `
           <svg class="icon" viewBox="0 0 24 24" width="16" height="16">

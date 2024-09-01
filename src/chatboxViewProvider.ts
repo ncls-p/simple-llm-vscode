@@ -75,8 +75,8 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
         type: "addSelectedCode", 
         code, 
         fileName, 
-        startLine: startLine !== undefined ? startLine + 1 : undefined,
-        endLine: endLine !== undefined ? endLine + 1 : undefined,
+        startLine: startLine !== undefined ? startLine : undefined,
+        endLine: endLine !== undefined ? endLine : undefined,
         id: Date.now() 
       });
     }
