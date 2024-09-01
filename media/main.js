@@ -142,7 +142,9 @@
 
         const fileInfoElement = document.createElement("div");
         fileInfoElement.classList.add("file-info");
-        fileInfoElement.textContent = `${codeBlock.fileName} (Lines ${codeBlock.startLine}-${codeBlock.endLine})`;
+        const startLine = codeBlock.startLine !== undefined ? codeBlock.startLine : 1;
+        const endLine = codeBlock.endLine !== undefined ? codeBlock.endLine : 'end';
+        fileInfoElement.textContent = `${codeBlock.fileName} (Lines ${startLine}-${endLine})`;
         wrapper.appendChild(fileInfoElement);
 
         const removeButton = document.createElement("button");
