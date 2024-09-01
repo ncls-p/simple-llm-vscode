@@ -117,13 +117,20 @@ body {
     background-color: var(--vscode-button-background);
     color: var(--vscode-button-foreground);
     border: none;
-    padding: 2px 5px;
+    padding: 4px;
     border-radius: 3px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 #context-preview button:hover {
     background-color: var(--vscode-button-hoverBackground);
+}
+
+#context-preview button .icon {
+    fill: currentColor;
 }
 
 #controls {
