@@ -45,7 +45,7 @@ export class ChatboxPanel {
         <title>LLM Chatbox</title>
         <style>
           body { font-family: Arial, sans-serif; }
-          #chat-container { height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; }
+          #chat-container { height: 30px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; }
           #input-container { margin-top: 10px; }
           #message-input { width: 70%; }
           #send-button { width: 20%; }

@@ -3,7 +3,8 @@ import { ChatboxViewProvider } from "./chatboxViewProvider";
 import * as path from "path";
 
 class ChatboxPanel {
-  _getWebviewContent() {
+  /*...*/
+  private _getWebviewContent() {
     return `
       <!DOCTYPE html>
       <html lang="en">
@@ -15,8 +16,9 @@ class ChatboxPanel {
           body { font-family: Arial, sans-serif; }
           #chat-container { height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; }
           #input-container { margin-top: 10px; }
-          #message-input { width: 70%; }
-          #send-button { width: 20%; }
+          #message-input { width: 60%; }
+          #send-button { width: 15%; }
+          #clear-button { width: 15%; }
           #loading-spinner {
             display: none;
             border: 4px solid #f3f3f3;
@@ -37,6 +39,7 @@ class ChatboxPanel {
         <div id="input-container">
           <input type="text" id="message-input" placeholder="Type your message...">
           <button id="send-button">Send</button>
+          <button id="clear-button">Clear</button>
           <div id="loading-spinner"></div>
         </div>
         <script>
@@ -44,6 +47,7 @@ class ChatboxPanel {
           const chatContainer = document.getElementById('chat-container');
           const messageInput = document.getElementById('message-input');
           const sendButton = document.getElementById('send-button');
+          const clearButton = document.getElementById('clear-button');
           const loadingSpinner = document.getElementById('loading-spinner');
 
           sendButton.addEventListener('click', () => {
@@ -53,6 +57,10 @@ class ChatboxPanel {
               messageInput.value = '';
               loadingSpinner.style.display = 'inline-block';
             }
+          });
+
+          clearButton.addEventListener('click', () => {
+            chatContainer.innerHTML = '';
           });
 
           window.addEventListener('message', event => {
@@ -67,11 +75,19 @@ class ChatboxPanel {
                 break;
             }
           });
+
+          window.addEventListener('keydown', event => {
+            if (event.ctrlKey && event.key === 'l') {
+              event.preventDefault();
+              chatContainer.innerHTML = '';
+            }
+          });
         </script>
       </body>
       </html>
     `;
   }
+  /*...*/
 }
 
 export function activate(context: vscode.ExtensionContext) {

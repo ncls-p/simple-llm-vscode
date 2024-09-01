@@ -87,7 +87,7 @@ function activate(context) {
               apiToken: "YOUR_API_TOKEN",
               modelName: "gpt-3.5-turbo",
               systemPrompt: "You are a helpful assistant.",
-              temperature: 0.7,
+              temperature: 0.2,
             },
           ],
         };
