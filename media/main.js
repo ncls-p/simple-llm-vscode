@@ -143,7 +143,7 @@
         const fileInfoElement = document.createElement("div");
         fileInfoElement.classList.add("file-info");
         let lineInfo = "";
-        if (codeBlock.startLine !== undefined && codeBlock.endLine !== undefined) {
+        if (codeBlock.startLine !== null && codeBlock.endLine !== null) {
           if (codeBlock.startLine === codeBlock.endLine) {
             lineInfo = `Line ${codeBlock.startLine}`;
           } else {
@@ -154,7 +154,7 @@
         fileInfoElement.textContent = `${codeBlock.fileName}${lineInfo}`;
         wrapper.appendChild(fileInfoElement);
 
-        console.log("Code block:", codeBlock); // Add this line for debugging
+        console.log("Code block:", codeBlock); // Keep this line for debugging
 
         const removeButton = document.createElement("button");
         removeButton.innerHTML = `
