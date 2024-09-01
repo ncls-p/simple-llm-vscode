@@ -135,20 +135,22 @@ body {
 
 #controls {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
-    gap: 10px;
+    margin-bottom: 5px;
+    gap: 5px;
 }
 
 #llm-select, #conversation-select {
-    flex: 1 1 200px;
+    flex: 1;
     background-color: var(--vscode-dropdown-background);
     color: var(--vscode-dropdown-foreground);
     border: 1px solid var(--vscode-dropdown-border);
     border-radius: 3px;
-    padding: 5px;
+    padding: 2px 5px;
+    height: 24px;
+    font-size: 0.9em;
 }
 
 .button-group {
@@ -162,25 +164,20 @@ button {
     background-color: var(--vscode-button-background);
     color: var(--vscode-button-foreground);
     border: none;
-    padding: 4px 8px;
+    padding: 2px 4px;
     border-radius: 3px;
     cursor: pointer;
     font-size: 0.9em;
     display: flex;
     align-items: center;
     justify-content: center;
-    flex: 1;
-    height: 32px; /* Set a fixed height for all buttons except auto-scroll */
-}
-
-#auto-scroll {
-    height: auto; /* Allow auto-scroll button to size based on content */
-    padding: 4px;
+    flex: 0 0 auto;
+    height: 24px;
 }
 
 button .icon {
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
 }
 
 @media (max-width: 600px) {
