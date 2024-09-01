@@ -194,7 +194,9 @@
           lastMessage.innerHTML = renderMarkdown("**LLM:** ");
           chatContainer.appendChild(lastMessage);
         }
-        const newContent = lastMessage.textContent.replace("LLM:", "").trim() + message.content;
+        const existingContent = lastMessage.getAttribute("data-content") || "";
+        const newContent = existingContent + message.content;
+        lastMessage.setAttribute("data-content", newContent);
         lastMessage.innerHTML = renderMarkdown("**LLM:** " + newContent);
         scrollToBottom();
         break;
