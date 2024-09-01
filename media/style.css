@@ -177,7 +177,6 @@ button.active {
 }
 
 .llm-message {
-    background-color: var(--vscode-editor-selectionBackground);
     align-self: flex-start;
 }
 
