@@ -194,7 +194,7 @@
         const language = hljs.getLanguage(lang) ? lang : "plaintext";
         return hljs.highlight(code, { language }).value;
       },
-    });
+    }).replace(/<pre><code/g, '<pre><code class="hljs"');
   }
 
   function addDeleteButton(messageElement) {
@@ -219,9 +219,8 @@
           message.sender.toLowerCase() + "-message",
           "markdown-body"
         );
-        messageElement.innerHTML = renderMarkdown(
-          `**${message.sender}:** ${message.content}`
-        );
+        const renderedContent = renderMarkdown(message.content);
+        messageElement.innerHTML = `<strong>${message.sender}:</strong> ${renderedContent}`;
         addDeleteButton(messageElement);
         chatContainer.appendChild(messageElement);
         scrollToBottom();
@@ -282,7 +281,8 @@
         const existingContent = lastMessage.getAttribute("data-content") || "";
         const newContent = existingContent + message.content;
         lastMessage.setAttribute("data-content", newContent);
-        lastMessage.innerHTML = renderMarkdown("**LLM:** " + newContent);
+        const renderedContent = renderMarkdown(newContent);
+        lastMessage.innerHTML = `<strong>LLM:</strong> ${renderedContent}`;
         addDeleteButton(lastMessage);
         scrollToBottom();
 
