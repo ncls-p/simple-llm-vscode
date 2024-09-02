@@ -208,7 +208,6 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
 
     const conversations = this._getConversations();
     const conversationStrings = conversations.map((c) => JSON.stringify(c));
-    vscode.window.showInformationMessage(conversationStrings.join(", "));
 
     let conversation;
     if (conversationId) {
@@ -224,16 +223,8 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
       };
     }
 
-    vscode.window.showInformationMessage(
-      "Conversation ID: " + JSON.stringify(conversation)
-    );
-
     const newMessage = { role: "user", content: message };
     conversation.messages.push(newMessage);
-
-    vscode.window.showInformationMessage(
-      "Conversation messages: " + JSON.stringify(conversation.messages)
-    );
 
     try {
       const response = await axios.post(
@@ -454,7 +445,9 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
     document: vscode.TextDocument,
     position: vscode.Position
   ): Promise<CodeSuggestion | null> {
-    debug(`Getting code suggestion for ${document.fileName} at position ${position.line}:${position.character}`);
+    debug(
+      `Getting code suggestion for ${document.fileName} at position ${position.line}:${position.character}`
+    );
     const config = vscode.workspace.getConfiguration("llmChatbox");
     const enableCodeSuggestions = config.get<boolean>("enableCodeSuggestions");
     const codeSuggestionModelName = config.get<string>("codeSuggestionModel");
@@ -476,7 +469,9 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
       return null;
     }
 
-    const linePrefix = document.lineAt(position).text.substr(0, position.character);
+    const linePrefix = document
+      .lineAt(position)
+      .text.substr(0, position.character);
     const prompt = `Complete the following code:\n\n${linePrefix}`;
     debug(`Generated prompt: ${prompt}`);
 
@@ -486,14 +481,10 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
         model.apiUrl,
         {
           model: model.modelName,
-          messages: [
-            { role: "system", content: "You are a helpful code completion assistant." },
-            { role: "user", content: prompt },
-          ],
+          prompt: prompt,
           temperature: model.temperature,
-          max_tokens: 100,
-          n: 1,
-          stop: ["\n"],
+          max_tokens: 50,
+          stream: false,
         },
         {
           headers: {
@@ -503,7 +494,8 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
         }
       );
 
-      const suggestion = response.data.choices[0].message.content.trim();
+      debug(`Full response: ${JSON.stringify(response.data)}`);
+      const suggestion = response.data.choices[0].text;
       debug(`Received suggestion: ${suggestion}`);
       return {
         text: suggestion,
