@@ -103,6 +103,28 @@ export function activate(context: vscode.ExtensionContext) {
     )
   );
 
+  // Register the code suggestion provider
+  const codeSuggestionProvider = vscode.languages.registerCompletionItemProvider(
+    { scheme: "file", language: "*" },
+    {
+      provideCompletionItems: async (document, position) => {
+        const suggestion = await chatboxViewProvider.getCodeSuggestion(document, position);
+        if (suggestion) {
+          const item = new vscode.CompletionItem(suggestion.text);
+          item.range = suggestion.range;
+          item.kind = vscode.CompletionItemKind.Text;
+          item.detail = "AI Suggestion";
+          item.insertText = suggestion.text;
+          return [item];
+        }
+        return [];
+      },
+    },
+    "." // Trigger the completion on every character
+  );
+
+  context.subscriptions.push(codeSuggestionProvider);
+
   context.subscriptions.push(
     vscode.commands.registerCommand("llmChatbox.addSelectedCode", () => {
       const editor = vscode.window.activeTextEditor;

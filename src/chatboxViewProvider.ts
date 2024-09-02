@@ -18,6 +18,11 @@ interface Conversation {
   model: string;
 }
 
+interface CodeSuggestion {
+  text: string;
+  range: vscode.Range;
+}
+
 export class ChatboxViewProvider implements vscode.WebviewViewProvider {
   private _view?: vscode.WebviewView;
   private readonly _settingsPath: string;
@@ -434,6 +439,65 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
         type: "loadConversation",
         conversation: conversation,
       });
+    }
+  }
+
+  public async getCodeSuggestion(
+    document: vscode.TextDocument,
+    position: vscode.Position
+  ): Promise<CodeSuggestion | null> {
+    const config = vscode.workspace.getConfiguration("llmChatbox");
+    const enableCodeSuggestions = config.get<boolean>("enableCodeSuggestions");
+    const codeSuggestionModelName = config.get<string>("codeSuggestionModel");
+
+    if (!enableCodeSuggestions || !codeSuggestionModelName) {
+      return null;
+    }
+
+    const model = this._getSettings().models.find(
+      (m) => m.name === codeSuggestionModelName
+    );
+
+    if (!model) {
+      vscode.window.showErrorMessage(
+        "Selected code suggestion model not found in configuration."
+      );
+      return null;
+    }
+
+    const linePrefix = document.lineAt(position).text.substr(0, position.character);
+    const prompt = `Complete the following code:\n\n${linePrefix}`;
+
+    try {
+      const response = await axios.post(
+        model.apiUrl,
+        {
+          model: model.modelName,
+          messages: [
+            { role: "system", content: "You are a helpful code completion assistant." },
+            { role: "user", content: prompt },
+          ],
+          temperature: model.temperature,
+          max_tokens: 100,
+          n: 1,
+          stop: ["\n"],
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${model.apiToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const suggestion = response.data.choices[0].message.content.trim();
+      return {
+        text: suggestion,
+        range: new vscode.Range(position, position),
+      };
+    } catch (error) {
+      console.error("Error getting code suggestion:", error);
+      return null;
     }
   }
 }

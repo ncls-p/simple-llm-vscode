@@ -76,11 +76,33 @@
               "apiToken": {
                 "type": "string",
                 "description": "API Token for the LLM"
+              },
+              "modelName": {
+                "type": "string",
+                "description": "Name of the model to use"
+              },
+              "systemPrompt": {
+                "type": "string",
+                "description": "System prompt for the model"
+              },
+              "temperature": {
+                "type": "number",
+                "description": "Temperature for the model"
               }
             }
           },
           "default": [],
           "description": "List of LLM configurations"
+        },
+        "llmChatbox.enableCodeSuggestions": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable or disable Copilot-like code suggestions"
+        },
+        "llmChatbox.codeSuggestionModel": {
+          "type": "string",
+          "default": "",
+          "description": "Name of the model to use for code suggestions"
         }
       }
     }
