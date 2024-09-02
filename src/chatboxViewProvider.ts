@@ -3,6 +3,12 @@ import axios from "axios";
 import * as fs from "fs";
 import * as path from "path";
 
+const outputChannel = vscode.window.createOutputChannel("Simple-LLM Debug");
+
+function debug(message: string) {
+  outputChannel.appendLine(`[${new Date().toISOString()}] ${message}`);
+}
+
 interface LLMModel {
   name: string;
   apiUrl: string;
@@ -49,6 +55,7 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
     _context: vscode.WebviewViewResolveContext,
     _token: vscode.CancellationToken
   ): void {
+    debug("Resolving WebviewView");
     this._view = webviewView;
 
     webviewView.webview.options = {
@@ -59,6 +66,7 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
     webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
     webviewView.webview.onDidReceiveMessage(this._handleMessage.bind(this));
+    debug("WebviewView resolved");
   }
 
   public addSelectedCode(
@@ -446,11 +454,13 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
     document: vscode.TextDocument,
     position: vscode.Position
   ): Promise<CodeSuggestion | null> {
+    debug(`Getting code suggestion for ${document.fileName} at position ${position.line}:${position.character}`);
     const config = vscode.workspace.getConfiguration("llmChatbox");
     const enableCodeSuggestions = config.get<boolean>("enableCodeSuggestions");
     const codeSuggestionModelName = config.get<string>("codeSuggestionModel");
 
     if (!enableCodeSuggestions || !codeSuggestionModelName) {
+      debug("Code suggestions are disabled or model name is not set");
       return null;
     }
 
@@ -459,6 +469,7 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
     );
 
     if (!model) {
+      debug("Selected code suggestion model not found in configuration");
       vscode.window.showErrorMessage(
         "Selected code suggestion model not found in configuration."
       );
@@ -467,8 +478,10 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
 
     const linePrefix = document.lineAt(position).text.substr(0, position.character);
     const prompt = `Complete the following code:\n\n${linePrefix}`;
+    debug(`Generated prompt: ${prompt}`);
 
     try {
+      debug(`Sending request to ${model.apiUrl}`);
       const response = await axios.post(
         model.apiUrl,
         {
@@ -491,11 +504,13 @@ export class ChatboxViewProvider implements vscode.WebviewViewProvider {
       );
 
       const suggestion = response.data.choices[0].message.content.trim();
+      debug(`Received suggestion: ${suggestion}`);
       return {
         text: suggestion,
         range: new vscode.Range(position, position),
       };
     } catch (error) {
+      debug(`Error getting code suggestion: ${error}`);
       console.error("Error getting code suggestion:", error);
       return null;
     }

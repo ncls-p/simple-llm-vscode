@@ -2,6 +2,12 @@ import * as vscode from "vscode";
 import { ChatboxViewProvider } from "./chatboxViewProvider";
 import * as path from "path";
 
+const outputChannel = vscode.window.createOutputChannel("Simple-LLM Debug");
+
+function debug(message: string) {
+  outputChannel.appendLine(`[${new Date().toISOString()}] ${message}`);
+}
+
 class ChatboxPanel {
   /*...*/
   private _getWebviewContent() {
@@ -91,6 +97,7 @@ class ChatboxPanel {
 }
 
 export function activate(context: vscode.ExtensionContext) {
+  debug("Activating Simple-LLM extension");
   const chatboxViewProvider = new ChatboxViewProvider(
     context.extensionUri,
     context
@@ -102,14 +109,17 @@ export function activate(context: vscode.ExtensionContext) {
       chatboxViewProvider
     )
   );
+  debug("Registered WebviewViewProvider");
 
   // Register the code suggestion provider
   const codeSuggestionProvider = vscode.languages.registerCompletionItemProvider(
     { scheme: "file", language: "*" },
     {
       provideCompletionItems: async (document, position) => {
+        debug(`Requesting code suggestion for ${document.fileName} at position ${position.line}:${position.character}`);
         const suggestion = await chatboxViewProvider.getCodeSuggestion(document, position);
         if (suggestion) {
+          debug(`Received code suggestion: ${suggestion.text}`);
           const item = new vscode.CompletionItem(suggestion.text);
           item.range = suggestion.range;
           item.kind = vscode.CompletionItemKind.Text;
@@ -117,6 +127,7 @@ export function activate(context: vscode.ExtensionContext) {
           item.insertText = suggestion.text;
           return [item];
         }
+        debug("No code suggestion received");
         return [];
       },
     },
@@ -124,6 +135,7 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(codeSuggestionProvider);
+  debug("Registered CompletionItemProvider for code suggestions");
 
   context.subscriptions.push(
     vscode.commands.registerCommand("llmChatbox.addSelectedCode", () => {
